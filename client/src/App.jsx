@@ -1,12 +1,7 @@
 import { BrowserRouter as Router, Routes, Route } from "react-router-dom";
-import ChatPage from "./pages/ChatPage.jsx";
+import AuthIntroPage from "../src/pages/AuthIntroPage.jsx"
+import "./i18n.js";
 
 export default function App() {
-  return (
-    <Router>
-      <Routes>
-        <Route path="/" element={<ChatPage />} />
-      </Routes>
-    </Router>
-  );
+return <AuthIntroPage />;
 }

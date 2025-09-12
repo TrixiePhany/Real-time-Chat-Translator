@@ -1,5 +1,5 @@
-import ChatBox from "../components/ChatBox";
-import InputBox from "../components/InputBox";
+import ChatBox from "../components/ChatBox.jsx";
+import InputBox from "../components/ InputBox.jsx";
 
 export default function ChatPage() {
   return (
