@@ -1,40 +1,39 @@
 import { useState } from "react";
 import { useTranslation } from "react-i18next";
 import { motion } from "framer-motion";
+import Lottie from "lottie-react";
+import worldAnimation from "../assets/animations/world.json"; 
 
 export default function AuthIntroPage() {
   const { t, i18n } = useTranslation();
   const [isLogin, setIsLogin] = useState(true);
   const [form, setForm] = useState({ email: "", password: "", username: "", lang: "en" });
 
-  const handleChange = (e) => {
-    setForm({ ...form, [e.target.name]: e.target.value });
-  };
-
+  const handleChange = (e) => setForm({ ...form, [e.target.name]: e.target.value });
   const handleLanguageChange = (lang) => {
     i18n.changeLanguage(lang);
     setForm({ ...form, lang });
   };
-
   const handleSubmit = (e) => {
     e.preventDefault();
     console.log(isLogin ? "Login" : "Signup", form);
   };
 
   return (
-    <div className="flex h-screen">
-      {/* Left*/}
+    <div className="flex overflow-x-hidden h-screen">
+      {/* Left: Auth */}
       <motion.div 
         initial={{ x: -100, opacity: 0 }} 
         animate={{ x: 0, opacity: 1 }} 
         transition={{ duration: 0.6 }}
-        className="w-1/2 flex flex-col justify-center items-center bg-white shadow-lg p-8 relative"
+        className="w-1/2 flex flex-col justify-center items-center bg-white shadow-lg p-20 relative"
       >
-        <div className="absolute bg-gradient-to-br from-blue-500 to-purple-700 rounded-50% top-4 right-4">
+        {/* Language Selector */}
+        <div className="absolute top-4 bg-gradient-to-br from-blue-500 to-purple-700 text-bold right-4">
           <select
             value={form.lang}
             onChange={(e) => handleLanguageChange(e.target.value)}
-            className=" p-2 text-bold"
+            className="p-2 border rounded"
           >
             <option value="en">English</option>
             <option value="hi">हिंदी</option>
@@ -44,7 +43,9 @@ export default function AuthIntroPage() {
           </select>
         </div>
 
-        <h1 className="text-3xl text-blue-500 font-bold mb-6">{isLogin ? t("login") : t("signup")}</h1>
+        <h1 className="text-3xl text-blue-500 font-bold mb-6">
+          {isLogin ? t("login") : t("signup")}
+        </h1>
         <form onSubmit={handleSubmit} className="space-y-4 text-black w-3/4">
           {!isLogin && (
             <input
@@ -73,7 +74,10 @@ export default function AuthIntroPage() {
             className="w-full p-3 border rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500"
           />
 
-          <button type="submit" className="w-full bg-gradient-to-br from-blue-500 to-purple-700 text-white p-3 rounded-lg font-semibold hover:bg-blue-700 transition">
+          <button
+            type="submit"
+            className="w-full bg-gradient-to-br from-blue-500 to-purple-700 text-white p-3 rounded-lg font-semibold hover:opacity-90 transition"
+          >
             {isLogin ? t("login") : t("signup")}
           </button>
         </form>
@@ -85,15 +89,24 @@ export default function AuthIntroPage() {
         </p>
       </motion.div>
 
-      {/* Right*/}
+      {/* Right: Intro with Lottie */}
       <motion.div 
         initial={{ x: 100, opacity: 0 }} 
         animate={{ x: 0, opacity: 1 }} 
         transition={{ duration: 0.6 }}
-        className="w-1/2 flex flex-col justify-center items-center bg-gradient-to-br from-blue-500 to-purple-700 text-white p-12"
+        className="w-dvw flex flex-col justify-center items-left bg-gradient-to-br from-blue-500 to-purple-700 text-white  "
       >
-        <h1 className="text-4xl font-bold text-center p-10 mb-6">{t("welcome")}</h1>
-        <p className="text-lg max-w-md text-center leading-relaxed">{t("intro")}</p>
+        {/* World Animation */}
+        <div className="w-dvh h-dvw align-left ">
+          <Lottie animationData={worldAnimation} loop={true} />
+        </div>
+
+        <h1 className="text-7xl max-w-3xl font-bold text-left p-4 drop-shadow-lg">
+          {t("welcome")}
+        </h1>
+        <p className="text-lg  p-5 text-left opacity-90 leading-relaxed">
+          {t("intro")}
+        </p>
       </motion.div>
     </div>
   );

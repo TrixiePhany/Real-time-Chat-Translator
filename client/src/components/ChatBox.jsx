@@ -1,5 +1,5 @@
 import { useState } from "react";
-import Message from "./Message.jsx";
+import Message from "./Message";
 
 export default function ChatBox() {
   const [messages] = useState([
