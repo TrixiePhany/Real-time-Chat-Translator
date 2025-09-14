@@ -29,12 +29,10 @@ const io = new Server(server, {
 app.use(cors({ origin: process.env.FRONTEND_URL || "*" }));
 app.use(express.json());
 
-// REST routes
 app.use("/api/auth", authRoutes);
 
 const PORT = process.env.PORT || 8001;
 
-// 🔹 Authenticate socket connections with JWT
 io.use((socket, next) => {
   const token = socket.handshake.auth.token;
   if (!token) return next(new Error("Authentication error: No token provided"));
@@ -49,7 +47,6 @@ io.use((socket, next) => {
   }
 });
 
-// 🔹 Handle socket connections
 io.on("connection", (socket) => {
   console.log("✅ New client connected:", socket.id);
 
@@ -65,7 +62,7 @@ io.on("connection", (socket) => {
 
     console.log(`${username} joined ${room} with language ${lang}`);
 
-    // send last 20 messages from DB
+    // 20 messages from DB
     const history = await Message.find({ room }).sort({ createdAt: -1 }).limit(20);
     socket.emit("chatHistory", history.reverse());
 
@@ -78,17 +75,15 @@ io.on("connection", (socket) => {
   const { username, id, lang } = socket.user;
   const sender = username;
 
-  // Save original message first
   const newMsg = new Message({
     sender,
     room,
     text,
-    translated: text, // fallback (English user sees original)
+    translated: text, 
     owner: id,
   });
   await newMsg.save();
 
-  // Translate per user and emit individually
   const socketsInRoom = await io.in(room).fetchSockets();
 
   socketsInRoom.forEach(async (client) => {
@@ -109,7 +104,6 @@ io.on("connection", (socket) => {
       console.error("❌ Translation failed:", err.message);
     }
 
-    // ✅ only emit, don’t re-save
     io.to(client.id).emit("receiveMessage", {
       sender,
       text,
