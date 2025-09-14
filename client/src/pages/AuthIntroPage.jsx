@@ -14,10 +14,37 @@ export default function AuthIntroPage() {
     i18n.changeLanguage(lang);
     setForm({ ...form, lang });
   };
-  const handleSubmit = (e) => {
-    e.preventDefault();
-    console.log(isLogin ? "Login" : "Signup", form);
-  };
+
+const handleSubmit = async (e) => {
+  e.preventDefault();
+
+  const endpoint = isLogin ? "/api/auth/login" : "/api/auth/signup";
+  const payload = isLogin
+    ? { email: form.email, password: form.password }
+    : { username: form.username, email: form.email, password: form.password, lang: form.lang };
+
+  try {
+    const res = await fetch(`http://localhost:8001${endpoint}`, {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify(payload),
+    });
+
+    const data = await res.json();
+
+    if (res.ok) {
+      localStorage.setItem("token", data.token || "");
+      localStorage.setItem("chatUser", JSON.stringify(data.user || payload));
+
+      window.location.href = "/chat";
+    } else {
+      alert(data.error || "Something went wrong");
+    }
+  } catch (err) {
+    console.error(err);
+    alert("Failed to connect to server");
+  }
+};
 
   return (
     <div className="flex overflow-x-hidden h-screen">

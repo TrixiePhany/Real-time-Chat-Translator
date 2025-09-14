@@ -7,5 +7,5 @@ import {io} from "socket.io-client";
 const socket = io("http://localhost:8001")
 
 export default function App() {
-return <ChatPage />;
+return <AuthIntroPage />;
 }

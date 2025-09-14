@@ -1,6 +1,14 @@
 import { motion } from "framer-motion";
 import { Users, Hash } from "lucide-react";
 
+const langFlags = {
+  en: "🇺🇸", // English
+  hi: "🇮🇳", // Hindi
+  es: "🇪🇸", // Spanish
+  fr: "🇫🇷", // French
+  zh: "🇨🇳", // Chinese
+};
+
 export default function ChatSidebar({ rooms, activeRoom, setActiveRoom, users }) {
   return (
     <motion.div
@@ -40,10 +48,15 @@ export default function ChatSidebar({ rooms, activeRoom, setActiveRoom, users })
           {users.map((user) => (
             <li
               key={user.id}
-              className="p-2 bg-white/10 rounded-lg flex items-center gap-2"
+              className="p-2 bg-white/10 rounded-lg flex items-center justify-between"
             >
-              <span className="w-3 h-3 rounded-full bg-green-400"></span>
-              {user.name}
+              <div className="flex items-center gap-2">
+                <span className="w-3 h-3 rounded-full bg-green-400"></span>
+                {user.name}
+              </div>
+              <span className="text-sm flex items-center gap-1 bg-white/20 px-2 py-1 rounded-lg">
+                {langFlags[user.lang] || "🌐"} {user.lang.toUpperCase()}
+              </span>
             </li>
           ))}
         </ul>
