@@ -113,7 +113,6 @@ socket.on("sendMessage", async ({ text, room }) => {
 
     delete userLanguages[socket.id];
   });
-});
 
 server.listen(PORT, () => {
   console.log(`🌸 Server running on http://localhost:${PORT}`);
