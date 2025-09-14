@@ -4,10 +4,11 @@ import { Server } from "socket.io";
 import axios from "axios";
 import dotenv from "dotenv";
 import cors from "cors";
-import { connectDB } from "./db/db.js";
+import connectDB from "./db/db.js";
 import authRoutes from "./routes/auth.js";
 import jwt from "jsonwebtoken";
-
+import Message from "./models/Message.js";
+import User from "./models/User.js";
 
 dotenv.config();
 connectDB();
@@ -24,52 +25,70 @@ const io = new Server(server, {
   },
 });
 
+// middleware
 app.use(cors({ origin: process.env.FRONTEND_URL || "*" }));
 app.use(express.json());
 
+// REST routes
 app.use("/api/auth", authRoutes);
 
-const PORT = process.env.PORT || 8002;
+const PORT = process.env.PORT || 8001;
 
-socket.on("joinRoom", ({ room }) => {
-  const { username, lang } = socket.user; // comes from JWT
-
-  socket.join(room);
-  userLanguages[socket.id] = lang || "en";
-
-  if (!roomUsers[room]) roomUsers[room] = [];
-  roomUsers[room].push({ id: socket.id, name: username, lang });
-
-  console.log(`${username} joined ${room} with language ${lang}`);
-
-  Message.find({ room })
-    .sort({ createdAt: -1 })
-    .limit(20)
-    .then((history) => {
-      socket.emit("chatHistory", history.reverse());
-    });
-
-  io.to(room).emit("roomUsers", roomUsers[room]);
-});
-
+// 🔹 Authenticate socket connections with JWT
 io.use((socket, next) => {
   const token = socket.handshake.auth.token;
   if (!token) return next(new Error("Authentication error: No token provided"));
 
   try {
     const decoded = jwt.verify(token, process.env.JWT_SECRET);
-    socket.user = decoded; // user info to socket
+    socket.user = decoded; // attach user info
     next();
   } catch (err) {
-    console.error(" JWT verification failed:", err.message);
-    return next(new Error("Authentication error-Invalid token"));
+    console.error("❌ JWT verification failed:", err.message);
+    return next(new Error("Authentication error: Invalid token"));
   }
 });
 
-socket.on("sendMessage", async ({ text, room }) => {
-  const { username } = socket.user;
+// 🔹 Handle socket connections
+io.on("connection", (socket) => {
+  console.log("✅ New client connected:", socket.id);
+
+  // join room
+  socket.on("joinRoom", async ({ room }) => {
+    const { username, lang, id } = socket.user;
+
+    socket.join(room);
+    userLanguages[socket.id] = lang || "en";
+
+    if (!roomUsers[room]) roomUsers[room] = [];
+    roomUsers[room].push({ id: socket.id, name: username, lang });
+
+    console.log(`${username} joined ${room} with language ${lang}`);
+
+    // send last 20 messages from DB
+    const history = await Message.find({ room }).sort({ createdAt: -1 }).limit(20);
+    socket.emit("chatHistory", history.reverse());
+
+    // broadcast updated users
+    io.to(room).emit("roomUsers", roomUsers[room]);
+  });
+
+  // send + save message
+  socket.on("sendMessage", async ({ text, room }) => {
+  const { username, id, lang } = socket.user;
   const sender = username;
 
+  // Save original message first
+  const newMsg = new Message({
+    sender,
+    room,
+    text,
+    translated: text, // fallback (English user sees original)
+    owner: id,
+  });
+  await newMsg.save();
+
+  // Translate per user and emit individually
   const socketsInRoom = await io.in(room).fetchSockets();
 
   socketsInRoom.forEach(async (client) => {
@@ -90,9 +109,7 @@ socket.on("sendMessage", async ({ text, room }) => {
       console.error("❌ Translation failed:", err.message);
     }
 
-    const newMsg = new Message({ sender, room, text, translated });
-    await newMsg.save();
-
+    // ✅ only emit, don’t re-save
     io.to(client.id).emit("receiveMessage", {
       sender,
       text,
@@ -103,6 +120,8 @@ socket.on("sendMessage", async ({ text, room }) => {
   });
 });
 
+
+  // disconnect
   socket.on("disconnect", () => {
     console.log("☠️ Client disconnected:", socket.id);
 
@@ -113,7 +132,9 @@ socket.on("sendMessage", async ({ text, room }) => {
 
     delete userLanguages[socket.id];
   });
+});
 
+// start server
 server.listen(PORT, () => {
-  console.log(`🌸 Server running on http://localhost:${PORT}`);
+  console.log(`🚀 Server running on http://localhost:${PORT}`);
 });

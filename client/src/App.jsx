@@ -1,11 +1,32 @@
-import { BrowserRouter as Router, Routes, Route } from "react-router-dom";
-import AuthIntroPage from "../src/pages/AuthIntroPage.jsx"
-import ChatPage from "./pages/ChatPage.jsx";
-import "./i18n.js";
-import {io} from "socket.io-client";
+import { BrowserRouter as Router, Routes, Route, Navigate } from "react-router-dom";
+import AuthIntroPage from "./pages/AuthIntroPage";
+import ChatPage from "./pages/ChatPage";
 
-const socket = io("http://localhost:8001")
+// helper: check if user logged in
+const isAuthenticated = () => {
+  return !!localStorage.getItem("token"); // true if JWT exists
+};
 
-export default function App() {
-return <AuthIntroPage />;
+function App() {
+  return (
+    <Router>
+      <Routes>
+        {/* Public: Login/Signup */}
+        <Route path="/" element={<AuthIntroPage />} />
+
+        {/* Protected: Chat Page */}
+        <Route
+          path="/chat"
+          element={
+            isAuthenticated() ? <ChatPage /> : <Navigate to="/" replace />
+          }
+        />
+
+        {/* Catch-all redirect */}
+        <Route path="*" element={<Navigate to="/" replace />} />
+      </Routes>
+    </Router>
+  );
 }
+
+export default App;

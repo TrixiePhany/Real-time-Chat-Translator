@@ -19,21 +19,21 @@ export default function ChatPage() {
 
 useEffect(() => {
   socket.connect();
+
   socket.emit("joinRoom", { room: activeRoom });
 
-  socket.on("chatHistory", (history) => {
-    setMessages(history);
-  });
+  const handleHistory = (history) => setMessages(history);
+  const handleReceive = (msg) => setMessages((prev) => [...prev, msg]);
+  const handleUsers = (roomUsers) => setUsers(roomUsers);
 
-  socket.on("receiveMessage", (msg) => {
-    setMessages((prev) => [...prev, msg]);
-  });
-
-  socket.on("roomUsers", (roomUsers) => {
-    setUsers(roomUsers);
-  });
+  socket.on("chatHistory", handleHistory);
+  socket.on("receiveMessage", handleReceive);
+  socket.on("roomUsers", handleUsers);
 
   return () => {
+    socket.off("chatHistory", handleHistory);
+    socket.off("receiveMessage", handleReceive);
+    socket.off("roomUsers", handleUsers);
     socket.disconnect();
   };
 }, [activeRoom]);
