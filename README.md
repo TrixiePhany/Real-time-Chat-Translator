@@ -22,7 +22,7 @@ The ChatSideBar is Basic but You can ofcourse have a look at it: <img width="360
 What I am gonna add more is :
 - Image / file uploads with preview.
 - Voice messages (record + send).
-- AI-powered translations (already part of your project, but can expand to tone correction).
+- AI-powered translations.
 - Toxicity filter (block hate speech before sending).
 - Chatbot integration (Q&A bot inside groups).
 
